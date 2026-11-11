@@ -1,0 +1,34 @@
+services:
+  proxygate:
+    build: .
+    image: proxygate-matrix:local
+    container_name: proxygate-matrix
+    restart: unless-stopped
+    environment:
+      PROXYGATE_WEB_LISTEN_ADDRESS: "0.0.0.0:8080"
+      PROXYGATE_DATABASE_PATH: "/data/proxygate.db"
+      PROXYGATE_API_KEY: "${PROXYGATE_API_KEY:?set PROXYGATE_API_KEY}"
+      PROXYGATE_MATRIX_ENABLED: "true"
+      PROXYGATE_MATRIX_PASSWORD: "${PROXYGATE_MATRIX_PASSWORD:?set PROXYGATE_MATRIX_PASSWORD}"
+      PROXYGATE_MATRIX_SLOTS: "100"
+      PROXYGATE_MATRIX_PORT_START: "10801"
+      PROXYGATE_MATRIX_LISTEN_ADDRESS: "0.0.0.0"
+      PROXYGATE_MATRIX_PUBLIC_HOST: "${PROXYGATE_MATRIX_PUBLIC_HOST:-}"
+      PROXYGATE_MATRIX_AUTOSTART: "false"
+      PROXYGATE_MATRIX_RESIDENTIAL_ONLY: "false"
+      PROXYGATE_MATRIX_HARVEST_INTERVAL: "3m"
+      PROXYGATE_MATRIX_NODE_TTL: "6h"
+      PROXYGATE_MATRIX_SUB_LISTEN: "${PROXYGATE_MATRIX_SUB_LISTEN:-:8090}"
+      PROXYGATE_MATRIX_SUB_TOKEN: "${PROXYGATE_MATRIX_SUB_TOKEN:-}"
+      PROXYGATE_MATRIX_SUB_PATH: "${PROXYGATE_MATRIX_SUB_PATH:-/pgws}"
+      PROXYGATE_MATRIX_SUB_TROJAN_PATH: "${PROXYGATE_MATRIX_SUB_TROJAN_PATH:-/pgtrojan}"
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+      - "10801-10900:10801-10900"
+      - "10801-10900:10801-10900/udp"
+    volumes:
+      - proxygate-data:/data
+
+volumes:
+  proxygate-data:
