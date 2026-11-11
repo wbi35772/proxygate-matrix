@@ -254,6 +254,7 @@ curl -X POST https://your-host:8080/api/v1/pool/allocate \
 | [docs/operations.md](docs/operations.md) | 拨号闸门、监控、容量、风控 |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | 症状决策树与诊断命令 |
 | [docs/development.md](docs/development.md) | 目录、构建、扩展格式 |
+| [docs/atlas.html](docs/atlas.html) | 单文件图谱页：mermaid / Chart.js / D3 |
 
 ---
 

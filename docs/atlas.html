@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ProxyGate Matrix · 文档图谱</title>
+<style>
+  :root{
+    --bg:#080c11;
+    --panel:#0e151d;
+    --panel2:#0b1219;
+    --line:#1c2836;
+    --line2:#243343;
+    --text:#e6edf6;
+    --muted:#8ea0b5;
+    --dim:#65788d;
+    --accent:#38bdf8;
+    --accent2:#f59e0b;
+    --ok:#34d399;
+    --bad:#f87171;
+    --violet:#a78bfa;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1100px 520px at 12% -8%, rgba(56,189,248,.13), transparent 60%),
+      radial-gradient(900px 480px at 92% 0%, rgba(245,158,11,.10), transparent 62%),
+      linear-gradient(180deg,#080c11 0%,#070a0e 100%);
+    color:var(--text);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px 72px}
+  header.top{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+  .brand h1{
+    margin:0;font-size:28px;letter-spacing:-.02em;font-weight:700;
+    background:linear-gradient(92deg,#e6f4ff 0%,#38bdf8 46%,#f59e0b 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .brand p{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:640px}
+  .tag{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border:1px solid var(--line2);border-radius:999px;font-size:11px;color:var(--muted);background:rgba(14,21,29,.7)}
+  .tag b{color:var(--accent);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px;margin:22px 0 26px}
+  .stat{border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,rgba(17,26,36,.9),rgba(11,18,25,.9));padding:12px 14px}
+  .stat .k{font-size:11px;color:var(--dim);letter-spacing:.04em}
+  .stat .v{font-size:21px;font-weight:650;color:var(--text);font-variant-numeric:tabular-nums;line-height:1.25}
+  .stat .v small{font-size:11px;color:var(--muted);font-weight:400;margin-left:4px}
+  .stat.hi .v{color:var(--accent)}
+  .stat.warn .v{color:var(--accent2)}
+
+  nav.tabs{position:sticky;top:0;z-index:20;display:flex;gap:6px;flex-wrap:wrap;padding:10px 0 12px;margin-bottom:8px;
+    background:linear-gradient(180deg,rgba(8,12,17,.97) 55%,rgba(8,12,17,0));backdrop-filter:blur(8px)}
+  .tab{appearance:none;border:1px solid var(--line);background:rgba(14,21,29,.8);color:var(--muted);
+    padding:7px 14px;border-radius:10px;font-size:13px;cursor:pointer;transition:.15s ease;font-family:inherit}
+  .tab:hover{color:var(--text);border-color:var(--line2)}
+  .tab.on{color:#04121b;background:linear-gradient(180deg,#7dd3fc,#38bdf8);border-color:#38bdf8;font-weight:600;box-shadow:0 6px 18px -8px rgba(56,189,248,.8)}
+
+  .panel{display:none;animation:fade .22s ease}
+  .panel.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  h2.sec{display:flex;align-items:center;gap:10px;font-size:16px;margin:26px 0 12px;color:var(--text);font-weight:650}
+  h2.sec::before{content:"";display:block;width:3px;height:16px;border-radius:2px;background:linear-gradient(180deg,var(--accent),var(--accent2))}
+  h2.sec small{font-weight:400;color:var(--dim);font-size:12px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:16px}
+  .grid.one{grid-template-columns:1fr}
+  .card{border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(180deg,rgba(16,24,33,.92),rgba(10,16,22,.92));
+    padding:16px 16px 14px;overflow:hidden;position:relative}
+  .card::after{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.35),transparent)}
+  .card h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 4px;font-size:13.5px;font-weight:600;letter-spacing:.01em}
+  .type{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.02em;
+    padding:2px 7px;border-radius:6px;color:#7dd3fc;background:rgba(56,189,248,.10);border:1px solid rgba(56,189,248,.22);white-space:nowrap}
+  .type.c{color:#fcd34d;background:rgba(245,158,11,.10);border-color:rgba(245,158,11,.24)}
+  .type.d{color:#c4b5fd;background:rgba(167,139,250,.10);border-color:rgba(167,139,250,.24)}
+  .card p.note{margin:0 0 10px;color:var(--muted);font-size:12.5px}
+  .diagram{display:flex;justify-content:center;align-items:center;min-height:120px;overflow:auto;padding:4px 0}
+  .diagram svg{max-width:100%;height:auto}
+  .chartbox{position:relative;height:290px}
+  .chartbox.tall{height:340px}
+  .d3box{width:100%}
+  .mmd-fail{border:1px dashed var(--line2);border-radius:10px;padding:10px;background:#0a1017;width:100%}
+  .mmd-fail b{color:var(--accent2);font-size:12px;display:block;margin-bottom:6px}
+  .mmd-fail pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:11px;color:var(--dim);font-family:ui-monospace,Menlo,Consolas,monospace}
+
+  table.mini{width:100%;border-collapse:collapse;font-size:12px}
+  table.mini th,table.mini td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.mini th{color:var(--dim);font-weight:500;font-size:11px;letter-spacing:.03em}
+  table.mini td code{color:#7dd3fc;font-size:11.5px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em;color:#9fd7f5;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.14);padding:1px 5px;border-radius:5px}
+  .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
+
+  ul.clean{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12.5px}
+  ul.clean li{margin:4px 0}
+  ul.clean b{color:var(--text);font-weight:550}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle}
+
+  .banner{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line2);border-left:3px solid var(--accent);
+    border-radius:10px;background:rgba(56,189,248,.06);padding:11px 14px;margin:0 0 4px;font-size:12.5px;color:var(--muted)}
+  .banner b{color:var(--text)}
+  .banner.warn{border-left-color:var(--accent2);background:rgba(245,158,11,.06)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:rgba(11,18,25,.7)}
+  .chip.ok{color:#86efac;border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.07)}
+
+  .matrix-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:8px;margin-top:8px}
+  .mi{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:11.5px;color:var(--muted);background:rgba(11,18,25,.6)}
+  .mi span.dot{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px rgba(52,211,153,.8);flex:none}
+  footer{margin-top:38px;padding-top:16px;border-top:1px solid var(--line);color:var(--dim);font-size:11.5px;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+  @media(max-width:720px){
+    .wrap{padding:22px 14px 56px}
+    .grid{grid-template-columns:1fr}
+    .brand h1{font-size:22px}
+    .chartbox{height:250px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>ProxyGate Matrix</h1>
+      <p>把 VPNGate 公共节点池变成可编排的多槽位出口矩阵：一面板管国家，一订阅喂客户端，一本地包喂指纹浏览器。</p>
+      <div class="chips">
+        <span class="tag"><b>20</b> 种 Mermaid 图</span>
+        <span class="tag"><b>4</b> 类 Chart.js</span>
+        <span class="tag"><b>3</b> 个 D3 可视化</span>
+      </div>
+    </div>
+    <div class="tag">文档图谱 · 2026-11 实测快照</div>
+  </header>
+
+  <div class="stats">
+    <div class="stat hi"><div class="k">槽位</div><div class="v">32<small>max 32</small></div></div>
+    <div class="stat"><div class="k">就绪</div><div class="v">26</div></div>
+    <div class="stat"><div class="k">健康</div><div class="v">24</div></div>
+    <div class="stat warn"><div class="k">每小时拨号</div><div class="v">51<small>/150</small></div></div>
+    <div class="stat"><div class="k">被拦</div><div class="v">0</div></div>
+    <div class="stat"><div class="k">冷却节点</div><div class="v">24</div></div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="overview">总览</button>
+    <button class="tab" data-tab="arch">架构</button>
+    <button class="tab" data-tab="deploy">部署</button>
+    <button class="tab" data-tab="sub">订阅</button>
+    <button class="tab" data-tab="local">本地接入</button>
+    <button class="tab" data-tab="ops">运维</button>
+  </nav>
+
+  <!-- ======================= 总览 ======================= -->
+  <section class="panel on" id="panel-overview">
+    <div class="banner"><div><b>槽位是稳定单位，节点是消耗品。</b>槽位绑定国家、端口和凭据；底层节点掉线时只换节点，不换国家、不换端口。</div></div>
+
+    <h2 class="sec">全链路 <small>flowchart</small></h2>
+    <div class="grid one">
+      <section class="card">
+        <h3>从公共节点池到三种接入形态 <span class="type">mermaid · flowchart</span></h3>
+        <p class="note">采集、筛选、拨号验证之后，同一个槽位同时输出订阅、本地 SOCKS5 与 HTTP API。</p>
+        <div class="mermaid">
+flowchart LR
+  A[VPNGate 公共池] --> B[采集 / 测速 / ASN]
+  B --> C[(SQLite 节点库)]
+  C --> D{槽位调度器}
+  D --> E[槽位 1..N]
+  E --> F[公网 8090 Trojan over WS]
+  E --> G[本地 sing-box 12001+]
+  E --> H[API key 池接口]
+  F --> I[订阅客户端]
+  G --> J[ShardX 指纹浏览器]
+  H --> K[自建调度系统]
+  L[8080 面板] --> D
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>系统上下文 <span class="type">mermaid · C4</span></h3>
+        <p class="note">谁在用、依赖谁、最终访问谁。</p>
+        <div class="mermaid">
+C4Context
+    title ProxyGate Matrix 上下文
+    Person(operator, "运维", "面板、配置、排障")
+    Person(client, "终端用户", "订阅客户端 / 指纹浏览器")
+    System(pg, "ProxyGate Matrix", "节点库、槽位矩阵、订阅、本地接入")
+    System_Ext(pool, "VPNGate 池", "公共节点列表与测速数据")
+    System_Ext(edge, "TLS 边缘", "Instabox / Nginx / Caddy")
+    System_Ext(site, "目标站点", "被访问的业务")
+    Rel(operator, pg, "8080 面板")
+    Rel(client, edge, "8090 订阅 / Trojan")
+    Rel(edge, pg, "反代到 8090")
+    Rel(pg, pool, "HTTP 采集")
+    Rel(pg, site, "经槽位出口访问")
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>进程与端口 <span class="type">mermaid · block</span></h3>
+        <p class="note">一个二进制，三套监听，一个 SQLite。</p>
+        <div class="mermaid">
+block-beta
+  columns 4
+  panel["面板 :8080"]
+  sub["订阅 :8090"]
+  slot["槽位 :10801+"]
+  local["本地 :12001+"]
+  db["SQLite /data"]
+  guard["拨号闸门"]
+  mgr["槽位管理器"]
+  pool["VPNGate 池"]
+  panel --> mgr
+  sub --> mgr
+  slot --> mgr
+  mgr --> guard
+  mgr --> db
+  mgr --> pool
+  local --> sub
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>节点库国家分布 <span class="type">mermaid · pie</span></h3>
+        <p class="note">公共池的国家分布极不均匀，这决定了哪些国家能给固定槽位。</p>
+        <div class="mermaid">
+pie showData
+    title 节点库国家分布（98 个）
+    "JP" : 40
+    "KR" : 38
+    "RU" : 7
+    "TH" : 5
+    "US" : 1
+    "其它" : 7
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>池子构成 <span class="type c">chart.js · doughnut</span></h3>
+        <p class="note">同一份数据换一种读法：占比一眼可见。</p>
+        <div class="chartbox"><canvas id="ch-pool"></canvas></div>
+      </section>
+    </div>
+
+    <h2 class="sec">图谱清单 <small>本页实际使用的图形能力</small></h2>
+    <section class="card">
+      <h3>已覆盖的图类型 <span class="type">inventory</span></h3>
+      <div class="matrix-list" id="inventory"></div>
+    </section>
+  </section>
+
+  <!-- ======================= 架构 ======================= -->
+  <section class="panel" id="panel-arch">
+    <h2 class="sec">请求路径 <small>sequence</small></h2>
+    <div class="grid one">
+      <section class="card">
+        <h3>一次订阅请求 <span class="type">mermaid · sequence</span></h3>
+        <p class="note">token 匹配、格式推断、槽位过滤、渲染与响应头。</p>
+        <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant C as 客户端
+    participant E as TLS 边缘
+    participant S as 订阅服务 :8090
+    participant M as 槽位管理器
+    participant D as SQLite
+    C->>E: GET /sub/TOKEN/v2ray?countries=JP,KR
+    E->>S: 反代（明文 HTTP）
+    S->>S: 匹配 token / 推断格式
+    S->>M: Status()
+    M->>D: 读取矩阵节点
+    M-->>S: slots[]
+    S->>S: 过滤 ready + healthy + exitIp
+    S->>S: 国家 / 排除 / 槽位 / 排序 / 截断
+    S-->>C: base64(trojan://...)
+    Note over S,C: X-ProxyGate-Nodes 等响应头
+        </div>
+      </section>
+    </div>
+
+    <h2 class="sec">槽位与类型 <small>state · class</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>槽位状态机 <span class="type">mermaid · state</span></h3>
+        <p class="note">只有 Ready 会进入订阅和本地接入包。</p>
+        <div class="mermaid">
+stateDiagram-v2
+    [*] --> Switching: Allocate
+    Switching --> Ready: 拨号成功且出口可用
+    Switching --> Error: 候选耗尽或全部冷却
+    Ready --> Switching: Rotate / 健康失败 / 轮换到期
+    Error --> Switching: 冷却结束或手动重试
+    Ready --> [*]: 释放
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>核心类型 <span class="type">mermaid · class</span></h3>
+        <p class="note">Manager 持有 Slot，Slot 过拨号闸门，订阅层只读 Status。</p>
+        <div class="mermaid">
+classDiagram
+    class Manager {
+      +Allocate(opts) Slot
+      +Rotate(slotID) error
+      +Status() SlotStatusList
+      +DialSlot(ctx, slotID, network, target)
+      +Stats(ctx) Stats
+    }
+    class Slot {
+      +SlotID int
+      +Country string
+      +Mode string
+      +Configure(opts) error
+      +maybeRotate()
+      +Status() SlotStatus
+    }
+    class dialGuard {
+      +Acquire(ctx, ip, port) error
+      +FilterCandidates(list) list
+      +Snapshot() DialStats
+    }
+    class Store {
+      +MatrixNodes(ctx)
+      +SaveMatrixNode(ctx, node)
+    }
+    class SubscriptionServer {
+      +Start()
+      +handleSubscription()
+      +handleTrojan()
+    }
+    Manager "1" --> "*" Slot
+    Manager --> dialGuard
+    Manager --> Store
+    SubscriptionServer --> Manager
+        </div>
+      </section>
+    </div>
+
+    <h2 class="sec">数据与协议 <small>ER · packet</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>SQLite 模型 <span class="type">mermaid · ER</span></h3>
+        <p class="note">matrix_nodes 以 (ip, port, protocol) 为主键，同一 IP 的不同协议分别评分。</p>
+        <div class="mermaid">
+erDiagram
+    NODES {
+        text ip PK
+        text host_name
+        int port
+        int score
+        int ping_ms
+        int speed_bps
+        text country_short
+        text protocols
+        int measured_bps
+        text last_failure
+    }
+    MATRIX_NODES {
+        text ip PK
+        int port PK
+        text protocol PK
+        text asn
+        text asn_org
+        int residential
+        int fail_count
+        int success_count
+        real quality_score
+        text cooldown_until
+        text source
+        text last_seen
+    }
+    METADATA {
+        text key PK
+        text value
+    }
+    NODES ||--o{ MATRIX_NODES : "质量补充"
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Trojan 请求头 <span class="type">mermaid · packet</span></h3>
+        <p class="note">56 字节 key 之后：CRLF、CMD、ATYP、地址、端口。CMD 0x01 走 TCP，0x03 走 UDP。</p>
+        <div class="mermaid">
+packet-beta
+0-7: "CMD"
+8-15: "ATYP"
+16-31: "PORT"
+32-55: "ADDR"
+56-63: "CRLF"
+        </div>
+      </section>
+    </div>
+
+    <h2 class="sec">概念地图 <small>mindmap</small></h2>
+    <div class="grid one">
+      <section class="card">
+        <h3>一张图记住全部概念 <span class="type">mermaid · mindmap</span></h3>
+        <div class="mermaid">
+mindmap
+  root((ProxyGate Matrix))
+    槽位
+      国家
+      端口
+      模式
+      凭据
+    节点
+      ASN
+      住宅标记
+      质量分
+      冷却
+    接入
+      订阅
+      本地 sing-box
+      API
+    保护
+      拨号闸门
+      分享上限
+      前置代理
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ======================= 部署 ======================= -->
+  <section class="panel" id="panel-deploy">
+    <h2 class="sec">前置条件 <small>requirement</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>部署需求 <span class="type">mermaid · requirement</span></h3>
+        <p class="note">最低配置就能跑；真正卡人的是 TLS 与端口。</p>
+        <div class="mermaid">
+requirementDiagram
+    requirement host {
+      id: 1
+      text: Linux x86_64 或 arm64，1 vCPU / 512 MB 起
+      risk: medium
+      verifymethod: test
+    }
+    requirement docker {
+      id: 2
+      text: Docker 24+ 与 compose 插件
+      risk: low
+      verifymethod: inspection
+    }
+    requirement network {
+      id: 3
+      text: 8080 与 8090 可达；槽位端口按需
+      risk: high
+      verifymethod: test
+    }
+    requirement tls {
+      id: 4
+      text: 公网域名 + TLS 终止，订阅地址必须是 https
+      risk: high
+      verifymethod: demonstration
+    }
+    element server {
+      type: VM
+    }
+    element edge {
+      type: reverse-proxy
+    }
+    server - satisfies -> host
+    server - satisfies -> docker
+    edge - satisfies -> network
+    edge - satisfies -> tls
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>部署拓扑 <span class="type">mermaid · architecture</span></h3>
+        <p class="note">平台只放行 8080/8090 时，公网 SOCKS 入口不可用，这是设计限制。</p>
+        <div class="mermaid">
+architecture-beta
+    group host(server)[服务器]
+    service panel(server)[面板 8080] in host
+    service sub(internet)[订阅 8090] in host
+    service slots(disk)[槽位 10801+] in host
+    service db(database)[SQLite] in host
+    service edge(cloud)[TLS 边缘]
+    service user(disk)[客户端]
+    user:R --> L:edge
+    edge:R --> L:sub
+    sub:R --> L:slots
+    panel:R --> L:db
+    sub:R --> L:db
+        </div>
+      </section>
+    </div>
+
+    <h2 class="sec">步骤与节奏 <small>gantt · flowchart</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>32 → 48 槽位扩容 <span class="type">mermaid · gantt</span></h3>
+        <p class="note">改 SLOTS 必须重建容器；新增槽位不会自动启动。</p>
+        <div class="mermaid">
+gantt
+    title 32 → 48 槽位扩容
+    dateFormat HH:mm
+    axisFormat %H:%M
+    section 准备
+      估算每小时拨号预算      :a1, 00:00, 5m
+      备份 config.json        :a2, after a1, 2m
+    section 执行
+      改 PROXYGATE_MATRIX_SLOTS :b1, after a2, 2m
+      重建容器                :b2, after b1, 90s
+      恢复既有槽位            :b3, after b2, 3m
+      分配新增国家            :b4, after b3, 5m
+    section 观察
+      看 Ready 数             :c1, after b4, 15m
+      看 dialstats            :c2, after b4, 15m
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>升级与回滚 <span class="type">mermaid · flowchart</span></h3>
+        <p class="note">回滚要同时还原镜像与 /data。</p>
+        <div class="mermaid">
+flowchart TD
+  A[git pull] --> B[备份 /data]
+  B --> C[docker compose build]
+  C --> D[up -d]
+  D --> E{ready 恢复?}
+  E -- 是 --> F[完成]
+  E -- 否 --> G[回滚镜像]
+  G --> H[恢复 /data 备份]
+  H --> I[复查日志]
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>扩容梯度 <span class="type c">chart.js · bar</span></h3>
+        <p class="note">槽位越多，每小时拨号预算越要跟着抬，但节奏必须打散。</p>
+        <div class="chartbox"><canvas id="ch-capacity"></canvas></div>
+      </section>
+
+      <section class="card">
+        <h3>端口与暴露面 <span class="type">table</span></h3>
+        <table class="mini">
+          <tr><th>端口</th><th>协议</th><th>公网</th><th>用途</th></tr>
+          <tr><td><code>8080</code></td><td>TCP</td><td>建议限制来源</td><td>面板与 API</td></tr>
+          <tr><td><code>8090</code></td><td>TCP</td><td>是</td><td>订阅 / Trojan / 健康检查</td></tr>
+          <tr><td><code>10801-10900</code></td><td>TCP+UDP</td><td>否</td><td>槽位 SOCKS5，仅内网</td></tr>
+          <tr><td><code>12001+</code></td><td>TCP</td><td>否</td><td>本地接入，跑在你自己机器上</td></tr>
+        </table>
+        <ul class="clean">
+          <li><b>必须改的变量：</b><code>PROXYGATE_API_KEY</code>、<code>PROXYGATE_MATRIX_PASSWORD</code>、<code>PROXYGATE_MATRIX_PUBLIC_HOST</code>。</li>
+          <li><b>WebSocket：</b>反代必须放行 <code>Upgrade</code>，否则 Trojan 在握手阶段就失败。</li>
+          <li><b>首次启动：</b>生成 <code>/data/config.json</code>，日志里打印一次初始管理员密码。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ======================= 订阅 ======================= -->
+  <section class="panel" id="panel-sub">
+    <h2 class="sec">一份配置的旅程 <small>sankey · journey</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>从请求到客户端 <span class="type">mermaid · sankey</span></h3>
+        <p class="note">100 个候选经过国家过滤、排序、截断，最后剩下 88 条进入渲染。</p>
+        <div class="mermaid">
+sankey-beta
+
+请求,格式识别,100
+格式识别,节点筛选,100
+节点筛选,国家过滤,100
+国家过滤,排序截断,88
+排序截断,格式渲染,88
+格式渲染,客户端,88
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>一次完整接入 <span class="type">mermaid · journey</span></h3>
+        <p class="note">分数越高越顺；卡点通常在「等槽位 Ready」。</p>
+        <div class="mermaid">
+journey
+    title 一次完整接入
+    section 部署
+      填 .env 并启动容器: 5: 运维
+      登录面板改密码: 4: 运维
+    section 配池
+      分配国家到槽位: 4: 运维
+      等到槽位 Ready: 3: 运维
+    section 接客户端
+      取订阅或本地包: 5: 用户
+      导入 v2rayN / ShardX: 4: 用户
+      验证出口国家: 5: 用户
+        </div>
+      </section>
+    </div>
+
+    <h2 class="sec">格式推断 <small>flowchart</small></h2>
+    <div class="grid one">
+      <section class="card">
+        <h3>format 省略时按 User-Agent 判断 <span class="type">mermaid · flowchart</span></h3>
+        <div class="mermaid">
+flowchart TD
+  A[/sub/token/format/] --> B{format 显式?}
+  B -- 是 --> Z[按格式渲染]
+  B -- 否 --> C[读 User-Agent]
+  C --> D{含 sing-box?}
+  D -- 是 --> S[singbox]
+  D -- 否 --> E{含 surge?}
+  E -- 是 --> SU[surge]
+  E -- 否 --> F{含 quantumult?}
+  F -- 是 --> Q[qx]
+  F -- 否 --> G{含 clash / mihomo / stash?}
+  G -- 是 --> CL[clash]
+  G -- 否 --> V[v2ray]
+        </div>
+      </section>
+    </div>
+
+    <h2 class="sec">参数与预设 <small>flowchart · radar</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>筛选与排序管线 <span class="type">mermaid · flowchart</span></h3>
+        <p class="note">国家过滤发生在候选选择阶段，不在渲染阶段。</p>
+        <div class="mermaid">
+flowchart LR
+  A[全部 ready 节点] --> B{countries / exclude}
+  B --> C{slots}
+  C --> D{preset}
+  D -- stable --> E[失败少 → 成功多 → 延迟低]
+  D -- quality --> F[质量分高 → 延迟低 → 带宽高]
+  D -- 无 --> G[按槽位号]
+  E --> H[shuffle?]
+  F --> H
+  G --> H
+  H --> I[count 截断]
+  I --> J[渲染]
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>三种输出形态对比 <span class="type c">chart.js · radar</span></h3>
+        <p class="note">相对评分，不是绝对性能；按客户端能力选形态。</p>
+        <div class="chartbox"><canvas id="ch-radar"></canvas></div>
+      </section>
+    </div>
+
+    <div class="grid one">
+      <section class="card">
+        <h3>常用参数速查 <span class="type">table</span></h3>
+        <table class="mini">
+          <tr><th>参数</th><th>示例</th><th>说明</th></tr>
+          <tr><td><code>countries</code></td><td><code>JP,KR</code></td><td>白名单，严格过滤；没有就返回空，绝不回退</td></tr>
+          <tr><td><code>exclude</code></td><td><code>US,RU</code></td><td>排除这些国家</td></tr>
+          <tr><td><code>slots</code></td><td><code>3,7,11-15</code></td><td>只取指定槽位，支持区间</td></tr>
+          <tr><td><code>count</code></td><td><code>12</code></td><td>最多返回多少节点；0 表示不截断</td></tr>
+          <tr><td><code>preset</code></td><td><code>quality</code></td><td><code>stable</code> / <code>quality</code>；未给 count 时自动 20</td></tr>
+          <tr><td><code>group</code></td><td><code>none</code></td><td><code>country</code>（默认）/ <code>auto</code> / <code>fallback</code> / <code>none</code></td></tr>
+          <tr><td><code>sort</code></td><td><code>stable</code></td><td><code>slot</code> / <code>country</code> / <code>name</code> / <code>stable</code> / <code>quality</code></td></tr>
+        </table>
+      </section>
+    </div>
+  </section>
+
+  <!-- ======================= 本地接入 ======================= -->
+  <section class="panel" id="panel-local">
+    <div class="banner warn"><div><b>为什么需要本地接入：</b>很多平台（包括 Instabox）只发布 HTTP 端口，不提供公网裸 TCP。槽位 SOCKS5 只能监听在容器内网，于是把链路倒过来——本机开 SOCKS5，公网只走 HTTPS。</div></div>
+
+    <h2 class="sec">链路 <small>flowchart</small></h2>
+    <div class="grid one">
+      <section class="card">
+        <h3>本机 sing-box 桥接 <span class="type">mermaid · flowchart</span></h3>
+        <p class="note">端口 = basePort + slotId - 1，槽位掉线只留空档，不会串国家。</p>
+        <div class="mermaid">
+flowchart LR
+  subgraph PC[本机]
+    SX[ShardX 实例] -->|socks5://127.0.0.1:PORT| SB[sing-box]
+  end
+  subgraph EDGE[公网入口]
+    WSS[8090 Trojan over WSS]
+  end
+  subgraph SRV[服务端]
+    SLOT[槽位 N]
+    POOL[(节点库)]
+    T[目标站]
+  end
+  SB -->|TLS + WS /pgtrojan| WSS
+  WSS --> SLOT
+  SLOT --> POOL
+  SLOT --> T
+        </div>
+      </section>
+    </div>
+
+    <h2 class="sec">操作与时间线 <small>sequence · timeline</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>面板到 ShardX <span class="type">mermaid · sequence</span></h3>
+        <div class="mermaid">
+sequenceDiagram
+    participant U as 你
+    participant P as 面板 8080
+    participant L as /api/local/*
+    participant S as 本机 sing-box
+    participant X as ShardX
+    U->>P: 分享页 → 03 本地接入
+    U->>P: 选择起始端口（默认 12001）
+    P->>L: GET /api/local/plan
+    L-->>P: 节点 + 端口
+    U->>L: 下载 bundle
+    U->>S: 解压、放 sing-box.exe、start.cmd
+    U->>X: 粘贴 shardx.txt，类型选 SOCKS5
+    X->>S: 测试全部端口
+    S-->>X: 每个端口一个出口国家
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>首次配置时间线 <span class="type">mermaid · timeline</span></h3>
+        <p class="note">五分钟内能跑通，前提是槽位已经 Ready。</p>
+        <div class="mermaid">
+timeline
+    title 本地接入五分钟
+    00:00 : 打开分享页
+    00:30 : 选起始端口
+    01:00 : 下载 bundle
+    02:00 : 放入 sing-box.exe
+    02:30 : 双击 start.cmd
+    03:30 : 粘贴 shardx.txt
+    05:00 : Test all 通过
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>bundle 里有什么 <span class="type">table</span></h3>
+        <table class="mini">
+          <tr><th>文件</th><th>作用</th></tr>
+          <tr><td><code>config.json</code></td><td>sing-box 配置：每槽位一个 socks 入站 + 一个 trojan 出站</td></tr>
+          <tr><td><code>shardx.txt</code></td><td>每行一个 <code>socks5://127.0.0.1:PORT</code></td></tr>
+          <tr><td><code>start.cmd</code></td><td>检查 <code>sing-box.exe</code>，后台启动并打印端口范围</td></tr>
+          <tr><td><code>stop.cmd</code></td><td><code>taskkill /IM sing-box.exe /F</code></td></tr>
+          <tr><td><code>README.txt</code></td><td>中文步骤与端口说明</td></tr>
+        </table>
+        <ul class="clean">
+          <li><b>端口映射：</b>12001→槽位 1，12007→槽位 7，12032→槽位 32。</li>
+          <li><b>更新：</b>覆盖 config.json 与 shardx.txt，重启 sing-box 即可，不用改 ShardX。</li>
+          <li><b>限制：</b>socks 入站只支持 TCP；需要 UDP 用订阅（Trojan UDP 已实现）。</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h3>故障对照 <span class="type">table</span></h3>
+        <table class="mini">
+          <tr><th>现象</th><th>处理</th></tr>
+          <tr><td><code>missingHost: true</code></td><td>配 <code>publicHost</code>，或改用环境变量</td></tr>
+          <tr><td>端口连不上</td><td>看 <code>start.cmd</code> 窗口，确认 exe 在同目录</td></tr>
+          <tr><td><code>sing-box check</code> 失败</td><td>重新下载 bundle，不要手改配置</td></tr>
+          <tr><td>所有端口出口一样</td><td>槽位都分到同一国家/同一节点，改分配或轮换</td></tr>
+          <tr><td>端口空档</td><td>对应槽位掉线，正常行为</td></tr>
+          <tr><td>ShardX 测试超时</td><td>本机防火墙拦了 sing-box 的本地监听</td></tr>
+        </table>
+      </section>
+    </div>
+  </section>
+
+  <!-- ======================= 运维 ======================= -->
+  <section class="panel" id="panel-ops">
+    <h2 class="sec">拨号预算 <small>xychart · chart.js</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>每小时预算 <span class="type">mermaid · xychart</span></h3>
+        <p class="note">32 槽位实测：已用 51，上限 150。贴近上限就像在扫段。</p>
+        <div class="mermaid">
+xychart-beta
+    title "每小时拨号预算（32 槽位）"
+    x-axis ["已用", "余量"]
+    y-axis "目标数" 0 --> 160
+    bar [51, 99]
+    line [150, 150]
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>预算使用率 <span class="type c">chart.js · doughnut</span></h3>
+        <div class="chartbox"><canvas id="ch-budget"></canvas></div>
+      </section>
+    </div>
+
+    <h2 class="sec">节点与分配 <small>quadrant · treemap · d3</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>节点画像 <span class="type">mermaid · quadrant</span></h3>
+        <p class="note">高稳定 + 低延迟放 quality 预设；低稳定即使延迟好看也会被 stable 排到后面。</p>
+        <div class="mermaid">
+quadrantChart
+    title 节点画像
+    x-axis "低延迟" --> "高延迟"
+    y-axis "低稳定" --> "高稳定"
+    quadrant-1 "备用"
+    quadrant-2 "首选"
+    quadrant-3 "淘汰"
+    quadrant-4 "可用但慢"
+    "JP-KDDI": [0.78, 0.86]
+    "KR-KT": [0.82, 0.74]
+    "TH-AIS": [0.45, 0.62]
+    "US-Comcast": [0.30, 0.38]
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>槽位国家分配 <span class="type">mermaid · treemap</span></h3>
+        <div class="mermaid">
+treemap-beta
+"槽位分配"
+    "JP": 11
+    "KR": 6
+    "TH": 5
+    "US": 2
+    "FR": 1
+    "IN": 1
+    "空/错误": 6
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>槽位 → 国家 关系网 <span class="type d">d3 · force</span></h3>
+        <p class="note">32 个槽位围绕 7 个国家枢纽分布；节点大小 = 槽位数量。</p>
+        <div class="d3box" id="d3-force"></div>
+        <div class="legend" id="force-legend"></div>
+      </section>
+
+      <section class="card">
+        <h3>分配面积 <span class="type d">d3 · treemap</span></h3>
+        <p class="note">同样的数据，面积读法比数字更快看出「哪些国家在撑池子」。</p>
+        <div class="d3box" id="d3-treemap"></div>
+      </section>
+    </div>
+
+    <h2 class="sec">健康 <small>d3 gauges · chart.js line</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>关键指标仪表 <span class="type d">d3 · arc</span></h3>
+        <div class="d3box" id="d3-gauges"></div>
+      </section>
+
+      <section class="card">
+        <h3>冷启动理论耗时 <span class="type c">chart.js · line</span></h3>
+        <p class="note">按 slots × startStagger（3s）计算的最小值，不含每次拨号的 0.9–1.5 秒抖动。</p>
+        <div class="chartbox"><canvas id="ch-cold"></canvas></div>
+      </section>
+    </div>
+
+    <h2 class="sec">轮换与演进 <small>gitGraph · table</small></h2>
+    <div class="grid">
+      <section class="card">
+        <h3>分支演进 <span class="type">mermaid · gitGraph</span></h3>
+        <div class="mermaid">
+gitGraph
+    commit id: "upstream"
+    branch matrix
+    commit id: "slot matrix"
+    commit id: "subscription"
+    commit id: "local bundle"
+    checkout main
+    merge matrix
+    commit id: "docs"
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>闸门参数 <span class="type">table</span></h3>
+        <table class="mini">
+          <tr><th>参数</th><th>默认</th><th>建议</th></tr>
+          <tr><td><code>dialRate</code></td><td>1/s</td><td>保持 1，提高会明显增加扫描特征</td></tr>
+          <tr><td><code>dialBurst</code></td><td>3</td><td>32 槽位够用，不超过 5</td></tr>
+          <tr><td><code>portIpPerMinute</code></td><td>10</td><td>低供给国家降到 6</td></tr>
+          <tr><td><code>globalIpPerHour</code></td><td>100</td><td>32 槽位 150，48 槽位 200</td></tr>
+          <tr><td><code>failCooldownMinutes</code></td><td>360</td><td>池子大可以降到 120</td></tr>
+          <tr><td><code>dialMinMs</code> / <code>dialMaxMs</code></td><td>900 / 1500</td><td>槽位多时 1200–2500</td></tr>
+          <tr><td><code>startStaggerMs</code></td><td>3000</td><td>别并发起槽</td></tr>
+        </table>
+        <ul class="clean">
+          <li><b>容量：</b>每个出口最多 2 个指纹实例；<code>shareLimit</code> 按实例数设，别把所有节点都暴露出去。</li>
+          <li><b>风险不在端口数量，</b>而在同一出口的并发、规律的拨号节奏、短时间反复重建槽位。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <footer>
+    <span>ProxyGate Matrix · 文档图谱页</span>
+    <span>数据来源：2026-11 线上 32 槽位部署实测 · 图由 Mermaid / Chart.js / D3 本地渲染</span>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  if (!window.mermaid || !window.Chart || !window.d3) {
+    var warn = document.createElement('div');
+    warn.style.cssText = 'margin:16px auto;max-width:720px;padding:14px 18px;border-radius:10px;background:#3b1d24;border:1px solid #7f2b3a;color:#fecdd3;font:14px/1.6 system-ui,sans-serif';
+    warn.textContent = '图表库未加载：本页需要联网访问 cdn.jsdelivr.net（mermaid / Chart.js / D3）。离线时请直接用 Canvas 版。';
+    document.body.insertBefore(warn, document.body.firstChild);
+    return;
+  }
+
+  var COLORS = {
+    JP:'#38bdf8', KR:'#a78bfa', TH:'#f59e0b', US:'#34d399',
+    FR:'#f472b6', IN:'#22d3ee', RU:'#fb7185', OTHER:'#64748b', IDLE:'#475569'
+  };
+  var POOL = { JP:40, KR:38, RU:7, TH:5, US:1, OTHER:7 };
+  var SLOT_PLAN = [
+    ['JP',11],['KR',6],['TH',5],['US',2],['FR',1],['IN',1],['IDLE',6]
+  ];
+  var STATS = { ready:26, healthy:24, used:51, budget:150, cooling:24, slots:32 };
+
+  var esc = function(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  };
+
+  /* ---------- inventory ---------- */
+  var INV = [
+    'flowchart','C4Context','block-beta','pie','sequenceDiagram',
+    'stateDiagram-v2','classDiagram','erDiagram','packet-beta','mindmap',
+    'requirementDiagram','architecture-beta','gantt','sankey-beta','journey',
+    'timeline','xychart-beta','quadrantChart','treemap-beta','gitGraph',
+    'Chart.js · line / bar / radar / doughnut','D3 · force / treemap / arc'
+  ];
+  var invEl = document.getElementById('inventory');
+  INV.forEach(function(name){
+    var d = document.createElement('div');
+    d.className = 'mi';
+    d.innerHTML = '<span class="dot"></span><span>' + esc(name) + '</span>';
+    invEl.appendChild(d);
+  });
+
+  /* ---------- mermaid ---------- */
+  var mmdSeq = 0;
+  var mermaidReady = false;
+  function initMermaid(){
+    if (!window.mermaid || mermaidReady) return;
+    mermaidReady = true;
+    window.mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      darkMode: true,
+      securityLevel: 'strict',
+      fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans SC", sans-serif',
+      fontSize: 13,
+      themeVariables: {
+        background: 'transparent',
+        primaryColor: '#132030',
+        primaryTextColor: '#e6edf6',
+        primaryBorderColor: '#2b4a63',
+        secondaryColor: '#0f1a24',
+        tertiaryColor: '#0b1219',
+        lineColor: '#4b6178',
+        textColor: '#c9d7e6',
+        mainBkg: '#132030',
+        nodeBorder: '#2b4a63',
+        clusterBkg: '#0c141c',
+        clusterBorder: '#22303f',
+        titleColor: '#e6edf6',
+        edgeLabelBackground: '#0b1219',
+        actorBkg: '#132030',
+        actorBorder: '#2b4a63',
+        actorTextColor: '#e6edf6',
+        signalColor: '#7dd3fc',
+        signalTextColor: '#c9d7e6',
+        labelBoxBkgColor: '#132030',
+        labelBoxBorderColor: '#2b4a63',
+        labelTextColor: '#e6edf6',
+        loopTextColor: '#c9d7e6',
+        noteBkgColor: '#1b2430',
+        noteTextColor: '#dbe6f2',
+        noteBorderColor: '#3b4d63',
+        sectionBkgColor: '#101a24',
+        altSectionBkgColor: '#0c141c',
+        gridColor: '#22303f',
+        pie1: '#38bdf8', pie2: '#a78bfa', pie3: '#f59e0b', pie4: '#34d399',
+        pie5: '#f472b6', pie6: '#fb7185', pie7: '#22d3ee', pie8: '#64748b',
+        cScale0: '#38bdf8', cScale1: '#a78bfa', cScale2: '#f59e0b',
+        cScale3: '#34d399', cScale4: '#f472b6', cScale5: '#22d3ee'
+      }
+    });
+  }
+
+  async function renderMermaidIn(panel){
+    if (!window.mermaid) return;
+    initMermaid();
+    var els = panel.querySelectorAll('.mermaid:not([data-done])');
+    for (var i = 0; i < els.length; i++){
+      var el = els[i];
+      el.setAttribute('data-done', '1');
+      var src = (el.textContent || '').trim();
+      var id = 'mmd-' + (++mmdSeq);
+      try {
+        var out = await window.mermaid.render(id, src);
+        el.innerHTML = out.svg;
+        var svg = el.querySelector('svg');
+        if (svg){
+          svg.removeAttribute('height');
+          svg.style.maxWidth = '100%';
+          svg.style.height = 'auto';
+        }
+      } catch (err){
+        el.innerHTML = '<div class="mmd-fail"><b>本地 Mermaid 版本未渲染此图，源码如下</b><pre>' + esc(src) + '</pre></div>';
+        var junk = document.getElementById('d' + id);
+        if (junk && junk.parentNode) junk.parentNode.removeChild(junk);
+      }
+    }
+  }
+
+  /* ---------- charts ---------- */
+  var charts = {};
+  function chartDefaults(){
+    if (!window.Chart) return;
+    Chart.defaults.color = '#8ea0b5';
+    Chart.defaults.borderColor = 'rgba(148,163,184,.16)';
+    Chart.defaults.font.family = 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans SC", sans-serif';
+    Chart.defaults.font.size = 11;
+    Chart.defaults.plugins.legend.labels.boxWidth = 10;
+    Chart.defaults.plugins.legend.labels.boxHeight = 10;
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+  }
+  function mk(id, cfg){
+    var el = document.getElementById(id);
+    if (!el || charts[id]) return;
+    charts[id] = new Chart(el, cfg);
+  }
+
+  function initCharts(name){
+    if (!window.Chart) return;
+    chartDefaults();
+    if (name === 'overview'){
+      mk('ch-pool', {
+        type: 'doughnut',
+        data: {
+          labels: ['JP 日本','KR 韩国','RU 俄罗斯','TH 泰国','US 美国','其它'],
+          datasets: [{
+            data: [40,38,7,5,1,7],
+            backgroundColor: ['#38bdf8','#a78bfa','#fb7185','#f59e0b','#34d399','#64748b'],
+            borderColor: '#0b1219',
+            borderWidth: 2,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '58%',
+          plugins: {
+            legend: { position: 'right', labels: { padding: 12 } },
+            tooltip: { callbacks: { label: function(c){ return ' ' + c.label + '：' + c.parsed + ' 个节点'; } } }
+          }
+        }
+      });
+    }
+    if (name === 'deploy'){
+      mk('ch-capacity', {
+        type: 'bar',
+        data: {
+          labels: ['8 槽位','16 槽位','24 槽位','32 槽位','40 槽位','48 槽位'],
+          datasets: [{
+            label: '建议每小时拨号预算',
+            data: [100,100,150,150,200,200],
+            backgroundColor: ['#1e3a4f','#23506b','#2b6f8e','#38bdf8','#f59e0b','#fbbf24'],
+            borderRadius: 6,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, suggestedMax: 240, grid: { color: 'rgba(148,163,184,.10)' } }
+          }
+        }
+      });
+    }
+    if (name === 'sub'){
+      mk('ch-radar', {
+        type: 'radar',
+        data: {
+          labels: ['TCP','UDP','自动分组','规则集','配置体积(小)','客户端广度'],
+          datasets: [
+            { label: 'Trojan over WS（默认）', data: [5,5,5,5,4,3],
+              borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,.16)', pointBackgroundColor: '#38bdf8', borderWidth: 2 },
+            { label: 'SOCKS 列表', data: [5,3,1,1,5,4],
+              borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.14)', pointBackgroundColor: '#f59e0b', borderWidth: 2 },
+            { label: 'Clash / Mihomo YAML', data: [5,4,5,4,2,3],
+              borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.14)', pointBackgroundColor: '#a78bfa', borderWidth: 2 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { padding: 10 } } },
+          scales: {
+            r: {
+              min: 0, max: 5,
+              ticks: { stepSize: 1, backdropColor: 'transparent', color: '#65788d' },
+              grid: { color: 'rgba(148,163,184,.12)' },
+              angleLines: { color: 'rgba(148,163,184,.12)' },
+              pointLabels: { color: '#8ea0b5', font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+    if (name === 'ops'){
+      mk('ch-budget', {
+        type: 'doughnut',
+        data: {
+          labels: ['已用','余量'],
+          datasets: [{
+            data: [51,99],
+            backgroundColor: ['#f59e0b','#1e2a38'],
+            borderColor: '#0b1219', borderWidth: 2, hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '68%',
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { callbacks: { label: function(c){ return ' ' + c.label + '：' + c.parsed + ' 个目标'; } } }
+          }
+        }
+      });
+      mk('ch-cold', {
+        type: 'line',
+        data: {
+          labels: ['8','16','24','32','40','48'],
+          datasets: [{
+            label: '理论最小耗时（分钟）',
+            data: [0.4,0.8,1.2,1.6,2.0,2.4],
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56,189,248,.14)',
+            fill: true, tension: .32,
+            pointBackgroundColor: '#38bdf8', pointRadius: 3, borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { title: { display: true, text: '槽位数', color: '#65788d' }, grid: { display: false } },
+            y: { beginAtZero: true, title: { display: true, text: '分钟', color: '#65788d' }, grid: { color: 'rgba(148,163,184,.10)' } }
+          }
+        }
+      });
+    }
+  }
+
+  /* ---------- d3 ---------- */
+  var d3Done = {};
+  function slotList(){
+    var list = [], n = 1;
+    SLOT_PLAN.forEach(function(pair){
+      for (var i = 0; i < pair[1]; i++) list.push({ id: n++, code: pair[0] });
+    });
+    return list;
+  }
+
+  function renderForce(){
+    var host = document.getElementById('d3-force');
+    if (!host || d3Done.force) return;
+    d3Done.force = true;
+    d3.select(host).selectAll('*').remove();
+
+    var W = Math.max(320, host.clientWidth || 520);
+    var H = 380;
+    var slots = slotList();
+    var countries = ['JP','KR','TH','US','FR','IN','IDLE'];
+    var nodes = [], links = [];
+    countries.forEach(function(code){
+      var count = slots.filter(function(s){ return s.code === code; }).length;
+      nodes.push({ id: 'c-' + code, name: code === 'IDLE' ? '空闲' : code, code: code, kind: 'country', count: count, r: 12 + Math.sqrt(count) * 7 });
+    });
+    slots.forEach(function(s){
+      nodes.push({ id: 's-' + s.id, name: String(s.id), code: s.code, kind: 'slot', r: 5.5 });
+      links.push({ source: 's-' + s.id, target: 'c-' + s.code });
+    });
+
+    var svg = d3.select(host).append('svg')
+      .attr('viewBox', [0, 0, W, H])
+      .attr('width', '100%')
+      .attr('height', H)
+      .attr('role', 'img')
+      .style('display', 'block');
+
+    var g = svg.append('g');
+
+    var link = g.append('g')
+      .attr('stroke', 'rgba(148,163,184,.22)')
+      .attr('stroke-width', 1)
+      .selectAll('line')
+      .data(links)
+      .join('line');
+
+    var node = g.append('g')
+      .selectAll('g')
+      .data(nodes)
+      .join('g')
+      .style('cursor', 'default');
+
+    node.append('circle')
+      .attr('r', function(d){ return d.r; })
+      .attr('fill', function(d){
+        var c = d.code === 'IDLE' ? COLORS.IDLE : COLORS[d.code];
+        return d.kind === 'country' ? c : c;
+      })
+      .attr('fill-opacity', function(d){ return d.kind === 'country' ? .9 : .65; })
+      .attr('stroke', function(d){ return d.kind === 'country' ? 'rgba(230,237,246,.55)' : 'rgba(8,12,17,.9)'; })
+      .attr('stroke-width', function(d){ return d.kind === 'country' ? 1.5 : 1; });
+
+    node.append('text')
+      .text(function(d){ return d.kind === 'country' ? (d.name + ' ' + d.count) : d.name; })
+      .attr('text-anchor', 'middle')
+      .attr('dy', function(d){ return d.kind === 'country' ? 3.5 : 2.8; })
+      .attr('font-size', function(d){ return d.kind === 'country' ? 11 : 8; })
+      .attr('font-weight', function(d){ return d.kind === 'country' ? 600 : 400; })
+      .attr('fill', function(d){ return d.kind === 'country' ? '#04121b' : '#c9d7e6'; })
+      .attr('pointer-events', 'none');
+
+    var sim = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id(function(d){ return d.id; }).distance(64).strength(.55))
+      .force('charge', d3.forceManyBody().strength(-180))
+      .force('center', d3.forceCenter(W / 2, H / 2))
+      .force('collide', d3.forceCollide().radius(function(d){ return d.r + 5; }))
+      .force('x', d3.forceX(W / 2).strength(.04))
+      .force('y', d3.forceY(H / 2).strength(.06))
+      .on('tick', function(){
+        node.attr('transform', function(d){
+          d.x = Math.max(d.r + 2, Math.min(W - d.r - 2, d.x));
+          d.y = Math.max(d.r + 2, Math.min(H - d.r - 2, d.y));
+          return 'translate(' + d.x + ',' + d.y + ')';
+        });
+        link
+          .attr('x1', function(d){ return d.source.x; })
+          .attr('y1', function(d){ return d.source.y; })
+          .attr('x2', function(d){ return d.target.x; })
+          .attr('y2', function(d){ return d.target.y; });
+      });
+
+    var legend = document.getElementById('force-legend');
+    if (legend){
+      legend.innerHTML = countries.map(function(code){
+        var c = code === 'IDLE' ? COLORS.IDLE : COLORS[code];
+        var n = slots.filter(function(s){ return s.code === code; }).length;
+        return '<span><i style="background:' + c + '"></i>' + (code === 'IDLE' ? '空闲' : code) + ' · ' + n + '</span>';
+      }).join('');
+    }
+  }
+
+  function renderTreemap(){
+    var host = document.getElementById('d3-treemap');
+    if (!host || d3Done.treemap) return;
+    d3Done.treemap = true;
+    d3.select(host).selectAll('*').remove();
+
+    var W = Math.max(320, host.clientWidth || 520);
+    var H = 330;
+    var data = {
+      name: '槽位 32',
+      children: SLOT_PLAN.map(function(p){
+        return { name: p[0] === 'IDLE' ? '空闲' : p[0], code: p[0], value: p[1] };
+      })
+    };
+
+    var root = d3.hierarchy(data).sum(function(d){ return d.value || 0; });
+    d3.treemap().size([W, H]).paddingInner(3).paddingTop(2).round(true)(root);
+
+    var svg = d3.select(host).append('svg')
+      .attr('viewBox', [0, 0, W, H])
+      .attr('width', '100%')
+      .attr('height', H)
+      .style('display', 'block');
+
+    var leaf = svg.selectAll('g')
+      .data(root.leaves())
+      .join('g')
+      .attr('transform', function(d){ return 'translate(' + d.x0 + ',' + d.y0 + ')'; });
+
+    leaf.append('rect')
+      .attr('width', function(d){ return Math.max(0, d.x1 - d.x0); })
+      .attr('height', function(d){ return Math.max(0, d.y1 - d.y0); })
+      .attr('rx', 5)
+      .attr('fill', function(d){
+        var c = d.data.code === 'IDLE' ? COLORS.IDLE : COLORS[d.data.code];
+        return c;
+      })
+      .attr('fill-opacity', .82)
+      .attr('stroke', 'rgba(8,12,17,.85)')
+      .attr('stroke-width', 1);
+
+    leaf.append('text')
+      .attr('x', 8).attr('y', 17)
+      .attr('font-size', 11)
+      .attr('font-weight', 600)
+      .attr('fill', '#04121b')
+      .text(function(d){ return d.data.name; });
+
+    leaf.append('text')
+      .attr('x', 8).attr('y', 33)
+      .attr('font-size', 10)
+      .attr('fill', 'rgba(4,18,27,.78)')
+      .text(function(d){
+        var w = d.x1 - d.x0;
+        return w > 46 ? d.value + ' 槽位' : '';
+      });
+  }
+
+  function renderGauges(){
+    var host = document.getElementById('d3-gauges');
+    if (!host || d3Done.gauges) return;
+    d3Done.gauges = true;
+    d3.select(host).selectAll('*').remove();
+
+    var items = [
+      { label: '就绪槽位', value: STATS.ready, max: STATS.slots, color: '#38bdf8', unit: '' },
+      { label: '健康槽位', value: STATS.healthy, max: STATS.slots, color: '#34d399', unit: '' },
+      { label: '每小时拨号', value: STATS.used, max: STATS.budget, color: '#f59e0b', unit: '' },
+      { label: '冷却节点', value: STATS.cooling, max: 98, color: '#f87171', unit: '' }
+    ];
+
+    var W = Math.max(320, host.clientWidth || 520);
+    var H = 168;
+    var cell = W / items.length;
+    var R = Math.min(52, cell / 2 - 12);
+
+    var svg = d3.select(host).append('svg')
+      .attr('viewBox', [0, 0, W, H])
+      .attr('width', '100%')
+      .attr('height', H)
+      .style('display', 'block');
+
+    var arcBg = d3.arc().innerRadius(R - 9).outerRadius(R).startAngle(0).endAngle(2 * Math.PI);
+    var arcFg = d3.arc().innerRadius(R - 9).outerRadius(R).cornerRadius(4);
+
+    items.forEach(function(it, i){
+      var cx = cell * i + cell / 2;
+      var cy = 82;
+      var g = svg.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+      var pct = Math.max(0, Math.min(1, it.value / it.max));
+
+      g.append('path').attr('d', arcBg()).attr('fill', 'rgba(148,163,184,.13)');
+
+      var fg = g.append('path')
+        .datum({ endAngle: 0 })
+        .attr('fill', it.color)
+        .attr('d', arcFg)
+        .transition().duration(850).ease(d3.easeCubicOut)
+        .attrTween('d', function(d){
+          var interp = d3.interpolate(0, pct * 2 * Math.PI);
+          return function(t){
+            d.endAngle = interp(t);
+            return arcFg(d);
+          };
+        });
+
+      g.append('text')
+        .attr('text-anchor', 'middle').attr('y', 4)
+        .attr('font-size', 19).attr('font-weight', 650)
+        .attr('fill', '#e6edf6')
+        .text(it.value);
+
+      g.append('text')
+        .attr('text-anchor', 'middle').attr('y', 22)
+        .attr('font-size', 10).attr('fill', '#65788d')
+        .text('/ ' + it.max);
+
+      g.append('text')
+        .attr('text-anchor', 'middle').attr('y', R + 22)
+        .attr('font-size', 10.5).attr('fill', '#8ea0b5')
+        .text(it.label);
+    });
+  }
+
+  function initD3(name){
+    if (!window.d3) return;
+    if (name === 'ops'){
+      renderForce();
+      renderTreemap();
+      renderGauges();
+    }
+  }
+
+  /* ---------- tabs ---------- */
+  function activate(name){
+    var panels = document.querySelectorAll('.panel');
+    for (var i = 0; i < panels.length; i++){
+      panels[i].classList.toggle('on', panels[i].id === 'panel-' + name);
+    }
+    var tabs = document.querySelectorAll('.tab');
+    for (var j = 0; j < tabs.length; j++){
+      tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab') === name);
+    }
+    var panel = document.getElementById('panel-' + name);
+    if (!panel) return;
+    renderMermaidIn(panel);
+    initCharts(name);
+    initD3(name);
+    Object.keys(charts).forEach(function(k){
+      try { charts[k].resize(); } catch (e) {}
+    });
+  }
+
+  document.getElementById('tabs').addEventListener('click', function(ev){
+    var btn = ev.target.closest ? ev.target.closest('.tab') : null;
+    if (btn) activate(btn.getAttribute('data-tab'));
+  });
+
+  function boot(){
+    activate('overview');
+  }
+
+  function waitLibs(tries){
+    tries = tries || 0;
+    if (window.mermaid && window.Chart && window.d3) { boot(); return; }
+    if (tries > 80) { boot(); return; }
+    setTimeout(function(){ waitLibs(tries + 1); }, 50);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ waitLibs(0); });
+  } else {
+    waitLibs(0);
+  }
+})();
+</script>
+</body>
+</html>

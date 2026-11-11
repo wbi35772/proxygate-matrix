@@ -78,3 +78,12 @@ journey
 - 时间使用服务器本地时区；配置里的间隔用 Go duration（`15s`、`6h`）。
 - 端口只写 TCP，除非明确标了 UDP。
 - 文中「实测」均指 2026-11 的 32 槽位部署，数据会随池子波动。
+
+## 图谱页
+
+[atlas.html](atlas.html) 是单文件图谱页：6 个标签（总览 / 架构 / 部署 / 订阅 / 本地接入 / 运维），内含 mermaid 20 类图、Chart.js 与 D3 视图。
+
+- 直接用浏览器打开即可，图表库从 jsdelivr CDN 加载，需要联网。
+- 离线或想用交互版本时，用 Canvas 里的「ProxyGate Matrix · 文档图谱」。
+- GitHub 页面不会渲染 HTML，克隆后用本地浏览器打开。
+
