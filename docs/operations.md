@@ -223,6 +223,17 @@ curl -s -b cookie.txt -X PUT -H 'Content-Type: application/json' \
 | `socks5` / `socks5h` | 固定 SOCKS5 上游 |
 | `http` / `https` | 固定 HTTP 代理 |
 | `list` | URL 返回代理列表 |
+| `vless` / `trojan` | 直接粘贴节点分享链接（`vless://...` / `trojan://...`，仅支持 `type=ws` 的 WebSocket 传输） |
+
+vless / trojan 节点链接示例：
+
+```bash
+curl -s -b cookie.txt -X PUT -H 'Content-Type: application/json' \
+  -d '{"enabled":true,"type":"vless","url":"vless://UUID@HOST:443?security=tls&type=ws&host=HOST&path=%2Fproxy#Node","timeout":"15s"}' \
+  http://HOST:8080/api/matrix/front-proxy
+```
+
+面板「代理入口」页也可以直接选 `VLESS 节点链接` / `Trojan 节点链接` 后粘贴分享链接；`type` 留空时按 URL scheme 自动识别。
 
 注意：`slot` 会形成依赖环（槽位 A 通过槽位 B 拨号），至少保留一个不依赖前置代理的槽位。
 

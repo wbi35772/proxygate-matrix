@@ -41,9 +41,9 @@ func (s *Server) putFrontProxy(c fiber.Ctx) error {
 	}
 	kind := strings.ToLower(strings.TrimSpace(input.Type))
 	switch kind {
-	case "", "socks5", "socks5h", "http", "https", "list", "slot", "api":
+	case "", "socks5", "socks5h", "http", "https", "list", "slot", "api", "vless", "trojan":
 	default:
-		return writeError(c, fiber.StatusBadRequest, "front proxy type must be socks5, http, https, list, slot or api")
+		return writeError(c, fiber.StatusBadRequest, "front proxy type must be socks5, http, https, list, slot, api, vless or trojan")
 	}
 	timeout := strings.TrimSpace(input.Timeout)
 	if timeout == "" {

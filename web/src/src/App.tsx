@@ -35,6 +35,7 @@ function App() {
   const [authenticated, setAuthenticated] = useState<boolean | null>(null)
   const [version, setVersion] = useState<VersionInfo>()
   const [view, setView] = useState<View>('nodes')
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('source')
   const [theme, setTheme] = useState<Theme>(preferredTheme)
 
   useEffect(() => {
@@ -74,10 +75,11 @@ function App() {
       <div className="topbar-actions">
         <LanguageSelect />
         <button className="quiet-button theme-button" title={t('theme.switch')} onClick={() => setTheme(current => current === 'dark' ? 'light' : 'dark')}><ThemeIcon theme={theme} /><span>{theme === 'dark' ? t('theme.light') : t('theme.dark')}</span></button>
+        <button className="quiet-button" onClick={() => { setSettingsTab('account'); setView('settings') }}>{t('app.changePassword')}</button>
         <button className="quiet-button" onClick={logout}>{t('app.logout')}</button>
       </div>
     </header>
-    <main className="workspace">{view === 'nodes' ? <Nodes /> : view === 'subscription' ? <Subscription /> : view === 'share' ? <Share /> : <Settings />}</main>
+    <main className="workspace">{view === 'nodes' ? <Nodes /> : view === 'subscription' ? <Subscription /> : view === 'share' ? <Share /> : <Settings activeTab={settingsTab} onTabChange={setSettingsTab} />}</main>
   </div>
 }
 
@@ -1635,7 +1637,7 @@ function FrontProxyPanel({ initial, onSaved }: { initial: FrontProxySettings; on
   useEffect(() => { setSettings(initial) }, [initial])
 
   const update = <Key extends keyof FrontProxySettings>(key: Key, value: FrontProxySettings[Key]) => setSettings(current => ({ ...current, [key]: value }))
-  const needsURL = ['socks5', 'socks5h', 'http', 'https', 'list'].includes(settings.type)
+  const needsURL = ['socks5', 'socks5h', 'http', 'https', 'list', 'vless', 'trojan'].includes(settings.type)
 
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(''); setMessage(''); setSaving(true)
@@ -1660,6 +1662,8 @@ function FrontProxyPanel({ initial, onSaved }: { initial: FrontProxySettings; on
           <option value="socks5h">SOCKS5 (remote DNS)</option>
           <option value="http">HTTP CONNECT</option>
           <option value="https">HTTPS CONNECT</option>
+          <option value="vless">VLESS 节点链接</option>
+          <option value="trojan">Trojan 节点链接</option>
           <option value="list">{t('subscription.front.typeList')}</option>
           <option value="slot">{t('subscription.front.typeSlot')}</option>
           <option value="api">{t('subscription.front.typeApi')}</option>
@@ -1677,7 +1681,7 @@ function FrontProxyPanel({ initial, onSaved }: { initial: FrontProxySettings; on
   </form>
 }
 
-type SettingsTab = 'source' | 'protocol' | 'entry' | 'probe' | 'system'
+type SettingsTab = 'source' | 'protocol' | 'entry' | 'probe' | 'system' | 'account'
 
 const settingsTabs: Array<{ id: SettingsTab; index: string; label: string }> = [
   { id: 'source', index: '01', label: 'settings.tabSource' },
@@ -1685,12 +1689,14 @@ const settingsTabs: Array<{ id: SettingsTab; index: string; label: string }> = [
   { id: 'entry', index: '03', label: 'settings.tabEntry' },
   { id: 'probe', index: '04', label: 'settings.tabProbe' },
   { id: 'system', index: '05', label: 'settings.tabSystem' },
+  { id: 'account', index: '06', label: 'settings.tabAccount' },
 ]
 
-function Settings() {
+function Settings({ activeTab, onTabChange }: { activeTab: SettingsTab; onTabChange: (tab: SettingsTab) => void }) {
   const { t } = useTranslation()
   const [settings, setSettings] = useState<Config>()
   const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [restartRequired, setRestartRequired] = useState(false)
@@ -1718,6 +1724,8 @@ function Settings() {
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setError(''); setMessage('')
     if (!settings) return
+    if (newPassword && newPassword.length < 8) { setError(t('settings.passwordTooShort')); return }
+    if (newPassword !== confirmPassword) { setError(t('settings.passwordMismatch')); return }
     setSaving(true)
     try {
       const result = await api.put<{ restartRequired: boolean }>('/api/config', { config: settings, newPassword })
@@ -1805,7 +1813,12 @@ function Settings() {
       <Field label={t('settings.databasePath')}><input value={settings.databasePath} onChange={event => update('databasePath', event.target.value)} /></Field>
       <Field label={t('settings.webListen')}><input value={settings.web.listenAddress} onChange={event => update('web', { ...settings.web, listenAddress: event.target.value })} /></Field>
       <Field label={t('settings.webUsername')}><input value={settings.web.username} onChange={event => update('web', { ...settings.web, username: event.target.value })} /></Field>
-      <Field label={t('settings.newPassword')} hint={t('settings.newPasswordHint')}><input type="password" minLength={8} value={newPassword} onChange={event => setNewPassword(event.target.value)} /></Field>
+    </SettingsSection>}
+
+    {settingsTab === 'account' && <SettingsSection index="06" title={t('settings.accountTitle')} description={t('settings.accountDescription')}>
+      <Field label={t('settings.webUsername')} hint={t('settings.webUsernameHint')}><input autoComplete="username" value={settings.web.username} onChange={event => update('web', { ...settings.web, username: event.target.value })} /></Field>
+      <Field label={t('settings.newPassword')} hint={t('settings.newPasswordHint')}><input type="password" autoComplete="new-password" minLength={8} value={newPassword} onChange={event => setNewPassword(event.target.value)} /></Field>
+      <Field label={t('settings.confirmPassword')} hint={t('settings.confirmPasswordHint')}><input type="password" autoComplete="new-password" value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} /></Field>
     </SettingsSection>}
     </div>
 

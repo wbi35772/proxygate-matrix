@@ -87,6 +87,8 @@ func singleDialer(raw string) (Dialer, error) {
 		return &socks5Dialer{proxy: parsed}, nil
 	case "http", "https":
 		return &httpDialer{proxy: parsed}, nil
+	case "vless", "trojan":
+		return newNodeDialer(parsed)
 	default:
 		return nil, fmt.Errorf("unsupported front proxy scheme %q", parsed.Scheme)
 	}

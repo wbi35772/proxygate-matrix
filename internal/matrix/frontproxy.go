@@ -45,7 +45,7 @@ func (m *Manager) frontProxyDialer(slotID int) (frontproxy.Dialer, bool) {
 			return nil, false
 		}
 		return &timeoutDialer{timeout: timeout, inner: &frontproxy.APIDialer{URL: endpoint}}, true
-	case "", "socks5", "socks5h", "http", "https", "list":
+	case "", "socks5", "socks5h", "http", "https", "list", "vless", "trojan":
 		raw := strings.TrimSpace(settings.Matrix.FrontProxyURL)
 		if raw == "" {
 			return nil, false
