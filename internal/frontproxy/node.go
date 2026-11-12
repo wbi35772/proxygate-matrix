@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/websocket"
@@ -204,7 +205,7 @@ func (d *nodeDialer) DialContext(ctx context.Context, network, address string) (
 		_ = connection.Close()
 		return nil, err
 	}
-	return &nodeStream{Conn: connection, tunnel: tunnel}, nil
+	return &nodeStream{Conn: connection, tunnel: tunnel, vless: d.scheme == "vless"}, nil
 }
 
 func (d *nodeDialer) writeVlessHeader(writer io.ReadWriter, address string) error {
@@ -221,16 +222,6 @@ func (d *nodeDialer) writeVlessHeader(writer io.ReadWriter, address string) erro
 	header = appendAddress(header, host)
 	if _, err := writer.Write(header); err != nil {
 		return fmt.Errorf("write vless request: %w", err)
-	}
-	response := make([]byte, 2)
-	if _, err := io.ReadFull(writer, response); err != nil {
-		return fmt.Errorf("read vless response: %w", err)
-	}
-	if response[1] > 0 {
-		addons := make([]byte, response[1])
-		if _, err := io.ReadFull(writer, addons); err != nil {
-			return fmt.Errorf("read vless response addons: %w", err)
-		}
 	}
 	return nil
 }
@@ -288,9 +279,37 @@ func splitTarget(address string) (string, int, error) {
 type nodeStream struct {
 	net.Conn
 	tunnel *websocket.Conn
+	vless  bool
+	once   sync.Once
+	header error
 }
 
-func (s *nodeStream) Read(buffer []byte) (int, error) { return s.tunnel.Read(buffer) }
+func (s *nodeStream) Read(buffer []byte) (int, error) {
+	if s.vless {
+		s.once.Do(func() { s.header = discardVlessResponse(s.tunnel) })
+		if s.header != nil {
+			return 0, s.header
+		}
+	}
+	return s.tunnel.Read(buffer)
+}
+
+// discardVlessResponse eats the two-byte VLESS response header (version and
+// addon length) plus addons. Xray flushes it together with the first downlink
+// payload, so it cannot be read before the caller has sent anything.
+func discardVlessResponse(reader io.Reader) error {
+	head := make([]byte, 2)
+	if _, err := io.ReadFull(reader, head); err != nil {
+		return fmt.Errorf("read vless response: %w", err)
+	}
+	if head[1] > 0 {
+		addons := make([]byte, head[1])
+		if _, err := io.ReadFull(reader, addons); err != nil {
+			return fmt.Errorf("read vless response addons: %w", err)
+		}
+	}
+	return nil
+}
 
 func (s *nodeStream) Write(buffer []byte) (int, error) { return s.tunnel.Write(buffer) }
 
