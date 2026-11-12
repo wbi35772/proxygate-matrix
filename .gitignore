@@ -32,6 +32,6 @@ proxygate-nodes/
 /config.json
 /data/
 web/dist/
-web/src/tsconfig.app.tsbuildinfo
+web/src/*.tsbuildinfo
 *.tgz
 
