@@ -1703,7 +1703,7 @@ function Settings({ activeTab, onTabChange }: { activeTab: SettingsTab; onTabCha
   const [saving, setSaving] = useState(false)
   const [restarting, setRestarting] = useState(false)
   const [sourceTab, setSourceTab] = useState<'basic' | 'filter'>('basic')
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>('source')
+  const settingsTab = activeTab
 
   const load = useCallback(async () => {
     try { setSettings(await api.get<Config>('/api/config')); setError('') }
@@ -1758,7 +1758,7 @@ function Settings({ activeTab, onTabChange }: { activeTab: SettingsTab; onTabCha
     {message && <Notice tone={restartRequired ? 'warning' : 'success'}>{message}</Notice>}
 
     <nav className="settings-tabs" role="tablist" aria-label={t('settings.heading')}>
-      {settingsTabs.map(tab => <button key={tab.id} type="button" role="tab" id={`settings-tab-${tab.id}`} aria-controls={`settings-panel-${tab.id}`} aria-selected={settingsTab === tab.id} className={settingsTab === tab.id ? 'active' : ''} onClick={() => setSettingsTab(tab.id)}><b>{tab.index}</b><span>{t(tab.label)}</span></button>)}
+      {settingsTabs.map(tab => <button key={tab.id} type="button" role="tab" id={`settings-tab-${tab.id}`} aria-controls={`settings-panel-${tab.id}`} aria-selected={settingsTab === tab.id} className={settingsTab === tab.id ? 'active' : ''} onClick={() => onTabChange(tab.id)}><b>{tab.index}</b><span>{t(tab.label)}</span></button>)}
     </nav>
 
     <div className="settings-tab-panel" role="tabpanel" id={`settings-panel-${settingsTab}`} aria-labelledby={`settings-tab-${settingsTab}`}>
